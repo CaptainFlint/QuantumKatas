@@ -223,8 +223,13 @@ namespace Quantum.Kata.BasicGates
             // as an exercise, try to express the solution using several 
             // (possibly controlled) Pauli gates.
 
-            // Simple solution: SWAP(qs[0], qs[1]);
-            // ...
+            // Simple solution:
+            //SWAP(qs[0], qs[1]);
+
+            // Excersize solution:
+            CNOT(qs[1], qs[0]);
+            CNOT(qs[0], qs[1]);
+            CNOT(qs[1], qs[0]);
         }
         adjoint self;
     }
