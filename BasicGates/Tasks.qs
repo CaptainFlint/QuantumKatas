@@ -245,7 +245,10 @@ namespace Quantum.Kata.BasicGates
     {
         body
         {
-            // ...
+            // Simple solution:
+            //CCNOT(qs[0], qs[1], qs[2]);
+
+            // Solution without using CCNOT... (is it worth it?)
         }
         adjoint self;
     }
@@ -259,7 +262,13 @@ namespace Quantum.Kata.BasicGates
     {
         body
         {
-            // ...
+            // Simple solution:
+            //(Controlled(SWAP))([qs[0]], (qs[1], qs[2]));
+
+            // Excersize solution:
+            CNOT(qs[2], qs[1]);
+            CCNOT(qs[0], qs[1], qs[2]);
+            CNOT(qs[2], qs[1]);
         }
         adjoint self;
     }
