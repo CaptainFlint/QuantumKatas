@@ -5,6 +5,7 @@ namespace Quantum.Kata.BasicGates
 {
     open Microsoft.Quantum.Primitive;
     open Microsoft.Quantum.Canon;
+    open Microsoft.Quantum.Extensions.Math;
 
     //////////////////////////////////////////////////////////////////
     // Welcome!
@@ -108,7 +109,7 @@ namespace Quantum.Kata.BasicGates
         {
             S(q);
             // The same:
-            //R1(3.1415926535897932384626433832795 / 2.0, q);
+            //R1(PI() / 2.0, q);
         }
         adjoint auto;
     }
