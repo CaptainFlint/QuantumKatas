@@ -246,9 +246,7 @@ namespace Quantum.Kata.BasicGates
         body
         {
             // Simple solution:
-            //CCNOT(qs[0], qs[1], qs[2]);
-
-            // Solution without using CCNOT... (is it worth it?)
+            CCNOT(qs[0], qs[1], qs[2]);
         }
         adjoint self;
     }
