@@ -101,17 +101,17 @@ namespace Quantum.Kata.Superposition
                 H(qs[0]);
                 CNOT(qs[0], qs[1]);
             }
-            if (index == 1) {
+            elif (index == 1) {
                 X(qs[0]);
                 H(qs[0]);
                 CNOT(qs[0], qs[1]);
             }
-            if (index == 2) {
+            elif (index == 2) {
                 H(qs[0]);
                 CNOT(qs[0], qs[1]);
                 X(qs[1]);
             }
-            if (index == 3) {
+            elif (index == 3) {
                 X(qs[0]);
                 H(qs[0]);
                 CNOT(qs[0], qs[1]);
@@ -191,40 +191,82 @@ namespace Quantum.Kata.Superposition
     {
         body
         {
-            // TODO: This is very ugly code, try to make it better
-            mutable split = -1;
-            mutable first_one = true;
-            for (index in 0 .. Length(qs) - 1) {
-                if (bits1[index] && bits2[index]) {
-                    X(qs[index]);
+            mutable index = 0;
+            // Process to the first difference
+            if (bits1[0] == bits2[0]) {
+                repeat {
+                    if (bits1[index]) {  // && bits2[index]
+                        X(qs[index]);
+                    }
+                } until (bits1[index + 1] != bits2[index + 1])
+                fixup {
+                    set index = index + 1;
                 }
-                if (bits1[index] && !bits2[index]) {
-                    if (split >= 0) {
-                        CNOT(qs[split], qs[index]);
-                        if (!first_one) {
+                set index = index + 2;
+            }
+            else {
+                set index = 1;
+            }
+            let ctrl = index - 1;
+            let ctrl_one = bits1[ctrl]; // Controller bit has true in the first array
+            H(qs[ctrl]);
+            if (index <= Length(qs) - 1) {
+                repeat {
+                    if (bits1[index] && bits2[index]) {
+                        X(qs[index]);
+                    }
+                    if (bits1[index] && !bits2[index]) {
+                        CNOT(qs[ctrl], qs[index]);
+                        if (!ctrl_one) {
                             X(qs[index]);
                         }
                     }
-                    else {
-                        set split = index;
-                        set first_one = true;
-                        H(qs[index]);
-                    }
-                }
-                if (!bits1[index] && bits2[index]) {
-                    if (split >= 0) {
-                        CNOT(qs[split], qs[index]);
-                        if (first_one) {
+                    if (!bits1[index] && bits2[index]) {
+                        CNOT(qs[ctrl], qs[index]);
+                        if (ctrl_one) {
                             X(qs[index]);
                         }
                     }
-                    else {
-                        set split = index;
-                        set first_one = false;
-                        H(qs[index]);
-                    }
+                } until (index >= Length(qs) - 1)
+                fixup {
+                    set index = index + 1;
                 }
             }
+
+            // TODO: This is very ugly code, try to make it better
+            // mutable split = -1;
+            // mutable first_one = true;
+            // for (index3 in 0 .. Length(qs) - 1) {
+            //     if (bits1[index] && bits2[index]) {
+            //         X(qs[index]);
+            //     }
+            //     if (bits1[index] && !bits2[index]) {
+            //         if (split >= 0) {
+            //             CNOT(qs[split], qs[index]);
+            //             if (!first_one) {
+            //                 X(qs[index]);
+            //             }
+            //         }
+            //         else {
+            //             set split = index;
+            //             set first_one = true;
+            //             H(qs[index]);
+            //         }
+            //     }
+            //     if (!bits1[index] && bits2[index]) {
+            //         if (split >= 0) {
+            //             CNOT(qs[split], qs[index]);
+            //             if (first_one) {
+            //                 X(qs[index]);
+            //             }
+            //         }
+            //         else {
+            //             set split = index;
+            //             set first_one = false;
+            //             H(qs[index]);
+            //         }
+            //     }
+            // }
         }
     }
 
