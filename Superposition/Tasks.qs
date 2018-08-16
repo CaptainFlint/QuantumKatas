@@ -191,82 +191,33 @@ namespace Quantum.Kata.Superposition
     {
         body
         {
-            mutable index = 0;
+            mutable index1 = 0;
             // Process to the first difference
-            if (bits1[0] == bits2[0]) {
-                repeat {
-                    if (bits1[index]) {  // && bits2[index]
-                        X(qs[index]);
-                    }
-                } until (bits1[index + 1] != bits2[index + 1])
-                fixup {
-                    set index = index + 1;
+            repeat {
+                if (bits1[index1] && bits2[index1]) {
+                    X(qs[index1]);
                 }
-                set index = index + 2;
+            } until (bits1[index1] != bits2[index1])
+            fixup {
+                set index1 = index1 + 1;
             }
-            else {
-                set index = 1;
-            }
-            let ctrl = index - 1;
+            let ctrl = index1;
             let ctrl_one = bits1[ctrl]; // Controller bit has true in the first array
             H(qs[ctrl]);
-            if (index <= Length(qs) - 1) {
-                repeat {
-                    if (bits1[index] && bits2[index]) {
-                        X(qs[index]);
+            // Now we have superposition, proceed accordingly
+            for (index2 in (index1 + 1) .. (Length(qs) - 1)) {
+                if (bits1[index2] == bits2[index2]) {
+                    if (bits1[index2]) {
+                        X(qs[index2]);
                     }
-                    if (bits1[index] && !bits2[index]) {
-                        CNOT(qs[ctrl], qs[index]);
-                        if (!ctrl_one) {
-                            X(qs[index]);
-                        }
+                }
+                else {
+                    CNOT(qs[ctrl], qs[index2]);
+                    if (bits1[index2] != ctrl_one) {
+                        X(qs[index2]);
                     }
-                    if (!bits1[index] && bits2[index]) {
-                        CNOT(qs[ctrl], qs[index]);
-                        if (ctrl_one) {
-                            X(qs[index]);
-                        }
-                    }
-                } until (index >= Length(qs) - 1)
-                fixup {
-                    set index = index + 1;
                 }
             }
-
-            // TODO: This is very ugly code, try to make it better
-            // mutable split = -1;
-            // mutable first_one = true;
-            // for (index3 in 0 .. Length(qs) - 1) {
-            //     if (bits1[index] && bits2[index]) {
-            //         X(qs[index]);
-            //     }
-            //     if (bits1[index] && !bits2[index]) {
-            //         if (split >= 0) {
-            //             CNOT(qs[split], qs[index]);
-            //             if (!first_one) {
-            //                 X(qs[index]);
-            //             }
-            //         }
-            //         else {
-            //             set split = index;
-            //             set first_one = true;
-            //             H(qs[index]);
-            //         }
-            //     }
-            //     if (!bits1[index] && bits2[index]) {
-            //         if (split >= 0) {
-            //             CNOT(qs[split], qs[index]);
-            //             if (first_one) {
-            //                 X(qs[index]);
-            //             }
-            //         }
-            //         else {
-            //             set split = index;
-            //             set first_one = false;
-            //             H(qs[index]);
-            //         }
-            //     }
-            // }
         }
     }
 
