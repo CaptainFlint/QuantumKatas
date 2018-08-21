@@ -232,7 +232,69 @@ namespace Quantum.Kata.Superposition
         {
             // Hint: you can use Controlled functor to perform arbitrary controlled gates.
 
-            // ...
+            mutable k = 0;
+            mutable n = 1;
+            repeat {
+            } until (n >= Length(qs))
+            fixup {
+                set k = k + 1;
+                set n = n * 2;
+            }
+            if (k == 0) {
+                // N = 1, special case: just return |1⟩
+                X(qs[0]);
+            }
+            else {
+                // Allocate additional k qubits that will act as generators for the final states
+                using (qs_aux = Qubit[k]) {
+                    // First, prepare an equal superposition of all possible states of qs_aux (N = 2^k states)
+                    for (j in 0 .. k - 1) {
+                        H(qs_aux[j]);
+                    }
+                    // Now for each of these states let's set into |1⟩ a unique input qubit.
+                    // Matching rule: the ordinal index of the qs_aux state corresponds to its binary representation
+                    // (e.g. with k=4, the state No.6 will be |0110⟩). We will set to |1⟩ the input qubit
+                    // whose index is equal to that state's index.
+                    // The setting itself is performed by transforming the each aux state in turn into |1...1⟩
+                    // by NOTting all the 0-qubits, calling controlled not from all the aux qubits onto the target
+                    // qubit, then reverting the aux state.
+                    // OK, let's rock and roll.
+                    mutable bv = 0;
+                    for (i in 0 .. Length(qs) - 1) { // i is the index of the input qubit / aux state
+                        // 1. Switch the next aux state into |1...1⟩
+                        set bv = 1;
+                        for (j in 0 .. k - 1) {      // j is the index of the aux qubit
+                            if ((i &&& bv) == 0) {
+                                X(qs_aux[j]);
+                            }
+                            set bv = bv * 2;
+                        }
+                        // 2. Set the corresponding input qubit into |1⟩
+                        (Controlled(X))(qs_aux, (qs[i]));
+                        // 3. Restore the aux state
+                        set bv = 1;
+                        for (j in 0 .. k - 1) {
+                            if ((i &&& bv) == 0) {
+                                X(qs_aux[j]);
+                            }
+                            set bv = bv * 2;
+                        }
+                    }
+                    // Now we need to reset all the aux qubits into zero state without affecting the
+                    // main input qubits that are now entangled with them.
+                    // Again, just treat the aux states as binary representations, but this time reset
+                    // the 1-bits using CNOT from the main qubit (it's guaranteed to be the only one in |1⟩)
+                    for (i in 0 .. Length(qs) - 1) {
+                        set bv = 1;
+                        for (j in 0 .. k - 1) {
+                            if ((i &&& bv) != 0) {
+                                CNOT(qs[i], qs_aux[j]);
+                            }
+                            set bv = bv * 2;
+                        }
+                    }
+                }
+            }
         }
     }
 
