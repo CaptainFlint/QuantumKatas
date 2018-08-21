@@ -253,11 +253,27 @@ namespace Quantum.Kata.Superposition
                     }
                     // Now for each of these states let's set into |1⟩ a unique input qubit.
                     // Matching rule: the ordinal index of the qs_aux state corresponds to its binary representation
-                    // (e.g. with k=4, the state No.6 will be |0110⟩). We will set to |1⟩ the input qubit
+                    // (e.g. with k = 4, the state No.6 will be |0110⟩). We will set to |1⟩ the input qubit
                     // whose index is equal to that state's index.
                     // The setting itself is performed by transforming the each aux state in turn into |1...1⟩
                     // by NOTting all the 0-qubits, calling controlled not from all the aux qubits onto the target
                     // qubit, then reverting the aux state.
+                    //
+                    // Example: N = 4, k = 2
+                    // 1. Allocate 2 aux qubits |00⟩, full state: |0000.00⟩
+                    // 2. Make superposition: |0000.00⟩ + |0000.01⟩ + |0000.10⟩ + |0000.11⟩
+                    // 3. Set target qubits:
+                    //   a) index = 0, the corresponding aux state is |00⟩, so to make it |11⟩ we apply NOT to both aux qubits:
+                    //    |0000.00⟩ + |0000.01⟩ + |0000.10⟩ + |0000.11⟩ -> |0000.11⟩ + |0000.10⟩ + |0000.01⟩ + |0000.00⟩
+                    //   b) Switch 0 qubit where aux state is |11⟩ using CCNOT:
+                    //    |1000.11⟩ + |0000.10⟩ + |0000.01⟩ + |0000.00⟩
+                    //   c) Revert aux state by repeating NOTs from 3.a:
+                    //    |1000.00⟩ + |0000.01⟩ + |0000.10⟩ + |0000.11⟩
+                    //   d) Repeat steps a-c for index in (1..3):
+                    //    |1000.00⟩ + |0100.01⟩ + |0010.10⟩ + |0001.11⟩
+                    // 4. After that reset the aux qubits separately in each state, using CNOT with the input qubits as controllers:
+                    //    |1000.00⟩ + |0100.00⟩ + |0010.00⟩ + |0001.00⟩
+                    //
                     // OK, let's rock and roll.
                     mutable bv = 0;
                     for (i in 0 .. Length(qs) - 1) { // i is the index of the input qubit / aux state
