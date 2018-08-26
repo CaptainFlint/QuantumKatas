@@ -232,13 +232,14 @@ namespace Quantum.Kata.Superposition
         {
             // Hint: you can use Controlled functor to perform arbitrary controlled gates.
 
+            let n = Length(qs);
             mutable k = 0;
-            mutable n = 1;
+            mutable N = 1;
             repeat {
-            } until (n >= Length(qs))
+            } until (N >= n)
             fixup {
                 set k = k + 1;
-                set n = n * 2;
+                set N = N * 2;
             }
             if (k == 0) {
                 // N = 1, special case: just return |1⟩
@@ -276,10 +277,10 @@ namespace Quantum.Kata.Superposition
                     //
                     // OK, let's rock and roll.
                     mutable bv = 0;
-                    for (i in 0 .. Length(qs) - 1) { // i is the index of the input qubit / aux state
+                    for (i in 0 .. n - 1) {     // i is the index of the input qubit / aux state
                         // 1. Switch the next aux state into |1...1⟩
                         set bv = 1;
-                        for (j in 0 .. k - 1) {      // j is the index of the aux qubit
+                        for (j in 0 .. k - 1) { // j is the index of the aux qubit
                             if ((i &&& bv) == 0) {
                                 X(qs_aux[j]);
                             }
@@ -300,7 +301,7 @@ namespace Quantum.Kata.Superposition
                     // main input qubits that are now entangled with them.
                     // Again, just treat the aux states as binary representations, but this time reset
                     // the 1-bits using CNOT from the main qubit (it's guaranteed to be the only one in |1⟩)
-                    for (i in 0 .. Length(qs) - 1) {
+                    for (i in 0 .. n - 1) {
                         set bv = 1;
                         for (j in 0 .. k - 1) {
                             if ((i &&& bv) != 0) {
@@ -323,7 +324,21 @@ namespace Quantum.Kata.Superposition
     {
         body
         {
-            // ...
+            let n = Length(qs);
+            // Make the initial state |10...0⟩
+            X(qs[0]);
+            // For every qubit starting with the second one, split the first state so that the new |1⟩ substate
+            // received the amplitude 1/√n.
+            // Example for n = 5:
+            //   1/√5 * (√5|10000⟩)
+            //   1/√5 * (√4|10000⟩ + |01000⟩)
+            //   1/√5 * (√3|10000⟩ + |01000⟩ + |00100⟩)
+            //   1/√5 * (√2|10000⟩ + |01000⟩ + |00100⟩ + |00010⟩)
+            //   1/√5 * (|10000⟩ + |01000⟩ + |00100⟩ + |00010⟩ + |00001⟩)
+            for (i in 1 .. n - 1) {
+                (Controlled(Ry))([qs[0]], (2.0 * ArcSin(1.0 / Sqrt(ToDouble(n - i + 1))), qs[i]));
+                CNOT(qs[i], qs[0]);
+            }
         }
     }
 }
