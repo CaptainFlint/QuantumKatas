@@ -232,13 +232,14 @@ namespace Quantum.Kata.Superposition
         {
             // Hint: you can use Controlled functor to perform arbitrary controlled gates.
 
+            let n = Length(qs);
             mutable k = 0;
-            mutable n = 1;
+            mutable N = 1;
             repeat {
-            } until (n >= Length(qs))
+            } until (N >= n)
             fixup {
                 set k = k + 1;
-                set n = n * 2;
+                set N = N * 2;
             }
             if (k == 0) {
                 // N = 1, special case: just return |1⟩
@@ -276,10 +277,10 @@ namespace Quantum.Kata.Superposition
                     //
                     // OK, let's rock and roll.
                     mutable bv = 0;
-                    for (i in 0 .. Length(qs) - 1) { // i is the index of the input qubit / aux state
+                    for (i in 0 .. n - 1) {     // i is the index of the input qubit / aux state
                         // 1. Switch the next aux state into |1...1⟩
                         set bv = 1;
-                        for (j in 0 .. k - 1) {      // j is the index of the aux qubit
+                        for (j in 0 .. k - 1) { // j is the index of the aux qubit
                             if ((i &&& bv) == 0) {
                                 X(qs_aux[j]);
                             }
@@ -300,7 +301,7 @@ namespace Quantum.Kata.Superposition
                     // main input qubits that are now entangled with them.
                     // Again, just treat the aux states as binary representations, but this time reset
                     // the 1-bits using CNOT from the main qubit (it's guaranteed to be the only one in |1⟩)
-                    for (i in 0 .. Length(qs) - 1) {
+                    for (i in 0 .. n - 1) {
                         set bv = 1;
                         for (j in 0 .. k - 1) {
                             if ((i &&& bv) != 0) {
@@ -323,7 +324,71 @@ namespace Quantum.Kata.Superposition
     {
         body
         {
-            // ...
+            let n = Length(qs);
+            mutable k = 0;
+            mutable N = 1;
+            repeat {
+            } until (N >= n)
+            fixup {
+                set k = k + 1;
+                set N = N * 2;
+            }
+            Message($"len={n}, N={N}, k={k}");
+            if (N == n) {
+                // For power of two call the already implemented function
+                WState_PowerOfTwo(qs);
+            }
+            else {
+                //using (qs_comp = Qubit[n - qsl]) {
+                using (qs_aux = Qubit[k]) {
+                    // Initially, we go similar to WState_PowerOfTwo(), but as soon as we reach the last available
+                    // input qubit, it will be set to |1⟩ for all the rest of the states.
+                    for (j in 0 .. k - 1) {
+                        H(qs_aux[j]);
+                    }
+                    mutable bv = 0;
+                    for (i in 0 .. N - 1) {       // i is the index of the input qubit / aux state
+                        // 1. Switch the next aux state into |1...1⟩
+                        set bv = 1;
+                        for (j in 0 .. k - 1) {   // j is the index of the aux qubit
+                            if ((i &&& bv) == 0) {
+                                X(qs_aux[j]);
+                            }
+                            set bv = bv * 2;
+                        }
+                        // 2. Set the corresponding input qubit into |1⟩
+                        if (i < n) {
+                            (Controlled(X))(qs_aux, (qs[i]));
+                        }
+                        else {
+                            (Controlled(X))(qs_aux, (qs[n - 1]));
+                        }
+                        // 3. Restore the aux state
+                        set bv = 1;
+                        for (j in 0 .. k - 1) {
+                            if ((i &&& bv) == 0) {
+                                X(qs_aux[j]);
+                            }
+                            set bv = bv * 2;
+                        }
+                    }
+                    // Current state examples:
+                    // n = 3, N = 4, k = 2:
+                    //    |100.00⟩ + |010.01⟩ + |001.10⟩ + |001.11⟩
+                    // n = 5, N = 8, k = 3:
+                    //    |10000.000⟩ + |01000.001⟩ + |00100.010⟩ + |00010.011⟩ + |00001.100⟩ + |00001.101⟩ + |00001.110⟩ + |00001.111⟩
+
+                    (Controlled(H))([qs[n - 1]], qs_aux[k - 1]);
+                    //    |100.00⟩ + |010.01⟩ + √2 * |001.10⟩
+                    //    ... + |00001.100⟩ + |00001.101⟩ + √2 * |00001.110⟩
+                    (Controlled(X))(qs_aux[0 .. k-2], (qs_aux[k-1]));
+                    //    |100.00⟩ + |010.01⟩ + √2 * |001.11⟩
+                    //    ... + |00001.100⟩ + |00001.101⟩ + √2 * |00001.111⟩
+                    
+                    // 4. After that reset the aux qubits separately in each state, using CNOT with the input qubits as controllers:
+                }
+                //}
+            }
         }
     }
 }
