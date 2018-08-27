@@ -339,55 +339,41 @@ namespace Quantum.Kata.Superposition
                 WState_PowerOfTwo(qs);
             }
             else {
-                //using (qs_comp = Qubit[n - qsl]) {
-                using (qs_aux = Qubit[k]) {
-                    // Initially, we go similar to WState_PowerOfTwo(), but as soon as we reach the last available
-                    // input qubit, it will be set to |1⟩ for all the rest of the states.
-                    for (j in 0 .. k - 1) {
-                        H(qs_aux[j]);
-                    }
-                    mutable bv = 0;
-                    for (i in 0 .. N - 1) {       // i is the index of the input qubit / aux state
-                        // 1. Switch the next aux state into |1...1⟩
-                        set bv = 1;
-                        for (j in 0 .. k - 1) {   // j is the index of the aux qubit
-                            if ((i &&& bv) == 0) {
-                                X(qs_aux[j]);
-                            }
-                            set bv = bv * 2;
-                        }
-                        // 2. Set the corresponding input qubit into |1⟩
-                        if (i < n) {
-                            (Controlled(X))(qs_aux, (qs[i]));
-                        }
-                        else {
-                            (Controlled(X))(qs_aux, (qs[n - 1]));
-                        }
-                        // 3. Restore the aux state
-                        set bv = 1;
-                        for (j in 0 .. k - 1) {
-                            if ((i &&& bv) == 0) {
-                                X(qs_aux[j]);
-                            }
-                            set bv = bv * 2;
-                        }
-                    }
-                    // Current state examples:
-                    // n = 3, N = 4, k = 2:
-                    //    |100.00⟩ + |010.01⟩ + |001.10⟩ + |001.11⟩
-                    // n = 5, N = 8, k = 3:
-                    //    |10000.000⟩ + |01000.001⟩ + |00100.010⟩ + |00010.011⟩ + |00001.100⟩ + |00001.101⟩ + |00001.110⟩ + |00001.111⟩
+                // Supplemental qubits to make a total of N = 2^k qubits
+                using (qs_sup = Qubit[N - n]) {
+                    // Prepare the W-state for N qubits.
+                    // Examples for n = 5 and n = 6 (N = 8):
+                    //   |10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |00000.100> + |00000.010> + |00000.001>
+                    //   |100000.00> + |010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00> + |000000.10> + |000000.01>
+                    WState_PowerOfTwo(qs + qs_sup);
 
-                    (Controlled(H))([qs[n - 1]], qs_aux[k - 1]);
-                    //    |100.00⟩ + |010.01⟩ + √2 * |001.10⟩
-                    //    ... + |00001.100⟩ + |00001.101⟩ + √2 * |00001.110⟩
-                    (Controlled(X))(qs_aux[0 .. k-2], (qs_aux[k-1]));
-                    //    |100.00⟩ + |010.01⟩ + √2 * |001.11⟩
-                    //    ... + |00001.100⟩ + |00001.101⟩ + √2 * |00001.111⟩
-                    
-                    // 4. After that reset the aux qubits separately in each state, using CNOT with the input qubits as controllers:
+                    // Copy the supplemental qubits into the main sequence:
+                    //   |10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.100> + |01000.010> + |00100.001>
+                    //   |100000.00> + |010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00> + |100000.10> + |010000.01>
+                    for (i in 0 .. N - n - 1) {
+                        CNOT(qs_sup[i], qs[i]);
+                    }
+
+                    // Now zero out the supplemental qubits by merging the identical states of the main qubits:
+                    //   √2|10000.000> + √2|01000.000> + √2|00100.000> + |00010.000> + |00001.000>
+                    //   √2|100000.00> + √2|010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00>
+                    for (i in 0 .. N - n - 1) {
+                        (controlled(H))([qs[i]], qs_sup[i]);
+                    }
+                    // Now supplemental qubits are reset, we can get rid of them.
                 }
-                //}
+                // Current state:
+                //   √2|10000> + √2|01000> + √2|00100> + |00010> + |00001>
+                //   √2|100000> + √2|010000> + |001000> + |000100> + |000010> + |000001>
+                // We need to rebalance it. It probably can be done in fewer steps by carefully calculating all combinations,
+                // but it's easier to first merge all the "amplitude excesses" into one state and then rearrange that state with the rest.
+                // So, on this next step we build the following states:
+                //   √4|10000> + |01000> + |00100> + |00010> + |00001>
+                //   √3|100000> + |010000> + |001000> + |000100> + |000010> + |000001>
+                // Using Ry...
+                for (i in 0 .. N - n - 1) {
+                    //(controlled(Ry))([qs[i]], qs_sup[i]);
+                }
             }
         }
     }
