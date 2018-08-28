@@ -347,27 +347,26 @@ namespace Quantum.Kata.Superposition
                     //   |100000.00> + |010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00> + |000000.10> + |000000.01>
                     WState_PowerOfTwo(qs + qs_sup);
 
-                    // Copy the supplemental qubits into the main sequence:
-                    //   |10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.100> + |01000.010> + |00100.001>
-                    //   |100000.00> + |010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00> + |100000.10> + |010000.01>
+                    // One-by-one, merge the supplemental qubits into the first state:
+                    //   a) CNOT for setting the first qubit in the supplemental state;
+                    //   b) controlled Ry for merging the first state with the supplemental one, so that supplemental qubit was |0>,
+                    //      the rotation angle equals -2 * arctg(1/√m) where √m is the amplitude of the |0> state.
+                    // Chain for n = 5:
+                    //   |10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.100> + |00000.010> + |00000.001>
+                    //   √2|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |00000.010> + |00000.001>
+                    //   √2|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.010> + |00000.001>
+                    //   √3|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |00000.001>
+                    //   √3|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.001>
+                    //   √4|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000>
+                    // Final result for n = 6:
+                    //   √3|100000.00> + |010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00>
                     for (i in 0 .. N - n - 1) {
-                        CNOT(qs_sup[i], qs[i]);
-                    }
-
-                    // Now zero out the supplemental qubits by merging the identical states of the main qubits:
-                    //   √2|10000.000> + √2|01000.000> + √2|00100.000> + |00010.000> + |00001.000>
-                    //   √2|100000.00> + √2|010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00>
-                    for (i in 0 .. N - n - 1) {
-                        (controlled(H))([qs[i]], qs_sup[i]);
+                        CNOT(qs_sup[i], qs[0]);
+                        (Controlled(Ry))([qs[0]], (-2.0 * ArcTan(1.0 / Sqrt(ToDouble(i + 1))), qs_sup[i]));
                     }
                     // Now supplemental qubits are reset, we can get rid of them.
                 }
                 // Current state:
-                //   √2|10000> + √2|01000> + √2|00100> + |00010> + |00001>
-                //   √2|100000> + √2|010000> + |001000> + |000100> + |000010> + |000001>
-                // We need to rebalance it. It probably can be done in fewer steps by carefully calculating all combinations,
-                // but it's easier to first merge all the "amplitude excesses" into one state and then rearrange that state with the rest.
-                // So, on this next step we build the following states:
                 //   √4|10000> + |01000> + |00100> + |00010> + |00001>
                 //   √3|100000> + |010000> + |001000> + |000100> + |000010> + |000001>
                 // Using Ry...
