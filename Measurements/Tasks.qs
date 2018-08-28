@@ -38,8 +38,7 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return false;
+            return M(q) == One;
         }
     }
 
@@ -52,8 +51,8 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return false;
+            H(q);
+            return M(q) == Zero;
         }
     }
 
@@ -69,8 +68,8 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return false;
+            Ry(-2.0 * alpha, q);
+            return M(q) == Zero;
         }
     }
 
@@ -83,8 +82,12 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return -1;
+            if (M(qs[0]) == Zero) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
         }
     }
 
@@ -103,8 +106,13 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return -1;
+            mutable res = 0;
+            for (i in 0 .. 1) {
+                if (M(qs[1 - i]) == One) {
+                    set res = res + (2 ^ i);
+                }
+            }
+            return res;
         }
     }
 
