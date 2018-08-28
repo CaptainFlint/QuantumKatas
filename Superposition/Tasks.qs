@@ -325,54 +325,19 @@ namespace Quantum.Kata.Superposition
         body
         {
             let n = Length(qs);
-            mutable k = 0;
-            mutable N = 1;
-            repeat {
-            } until (N >= n)
-            fixup {
-                set k = k + 1;
-                set N = N * 2;
-            }
-            Message($"len={n}, N={N}, k={k}");
-            if (N == n) {
-                // For power of two call the already implemented function
-                WState_PowerOfTwo(qs);
-            }
-            else {
-                // Supplemental qubits to make a total of N = 2^k qubits
-                using (qs_sup = Qubit[N - n]) {
-                    // Prepare the W-state for N qubits.
-                    // Examples for n = 5 and n = 6 (N = 8):
-                    //   |10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |00000.100> + |00000.010> + |00000.001>
-                    //   |100000.00> + |010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00> + |000000.10> + |000000.01>
-                    WState_PowerOfTwo(qs + qs_sup);
-
-                    // One-by-one, merge the supplemental qubits into the first state:
-                    //   a) CNOT for setting the first qubit in the supplemental state;
-                    //   b) controlled Ry for merging the first state with the supplemental one, so that supplemental qubit was |0>,
-                    //      the rotation angle equals -2 * arctg(1/√m) where √m is the amplitude of the |0> state.
-                    // Chain for n = 5:
-                    //   |10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.100> + |00000.010> + |00000.001>
-                    //   √2|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |00000.010> + |00000.001>
-                    //   √2|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.010> + |00000.001>
-                    //   √3|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |00000.001>
-                    //   √3|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000> + |10000.001>
-                    //   √4|10000.000> + |01000.000> + |00100.000> + |00010.000> + |00001.000>
-                    // Final result for n = 6:
-                    //   √3|100000.00> + |010000.00> + |001000.00> + |000100.00> + |000010.00> + |000001.00>
-                    for (i in 0 .. N - n - 1) {
-                        CNOT(qs_sup[i], qs[0]);
-                        (Controlled(Ry))([qs[0]], (-2.0 * ArcTan(1.0 / Sqrt(ToDouble(i + 1))), qs_sup[i]));
-                    }
-                    // Now supplemental qubits are reset, we can get rid of them.
-                }
-                // Current state:
-                //   √4|10000> + |01000> + |00100> + |00010> + |00001>
-                //   √3|100000> + |010000> + |001000> + |000100> + |000010> + |000001>
-                // Using Ry...
-                for (i in 0 .. N - n - 1) {
-                    //(controlled(Ry))([qs[i]], qs_sup[i]);
-                }
+            // Make the initial state |10...0⟩
+            X(qs[0]);
+            // For every qubit starting with the second one, split the first state so that the new |1⟩ substate
+            // received the amplitude 1/√n.
+            // Example for n = 5:
+            //   1/√5 * (√5|10000⟩)
+            //   1/√5 * (√4|10000⟩ + |01000⟩)
+            //   1/√5 * (√3|10000⟩ + |01000⟩ + |00100⟩)
+            //   1/√5 * (√2|10000⟩ + |01000⟩ + |00100⟩ + |00010⟩)
+            //   1/√5 * (|10000⟩ + |01000⟩ + |00100⟩ + |00010⟩ + |00001⟩)
+            for (i in 1 .. n - 1) {
+                (Controlled(Ry))([qs[0]], (2.0 * ArcSin(1.0 / Sqrt(ToDouble(n - i + 1))), qs[i]));
+                CNOT(qs[i], qs[0]);
             }
         }
     }
