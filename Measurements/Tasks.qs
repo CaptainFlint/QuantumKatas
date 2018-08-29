@@ -134,7 +134,17 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
+            for (i in 0 .. Length(qs) - 1) {
+                if (bits1[i] != bits2[i]) {
+                    if ((M(qs[i]) == One) == bits1[i]) {
+                        return 0;
+                    }
+                    else {
+                        return 1;
+                    }
+                }
+            }
+            // Guaranteed to never reach this statement, but compilation fails without a return.
             return -1;
         }
     }
@@ -150,8 +160,15 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return -1;
+            for (i in 1 .. Length(qs) - 1) {
+                CNOT(qs[i], qs[0]);
+            }
+            if (M(qs[0]) == Zero) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
         }
     }
 
