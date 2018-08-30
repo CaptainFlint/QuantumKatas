@@ -183,8 +183,37 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return -1;
+            // Looks like for N = 1 it is impossible to distinguish (|0⟩ + |1⟩) / √2 (GHZ) from |1⟩ (W) with a guarantee.
+            // The test actually runs only for N >= 2, so it's OK.
+            let N = Length(qs);
+            if (N == 1) {
+                return -1;
+            }
+
+            for (i in 1 .. N - 1) {
+                CNOT(qs[i], qs[0]);
+            }
+            // Now GHZ state remained (|00...0⟩ + |11...1⟩) / √2 for odd N, or turned into (|00...0⟩ + |01...1⟩) / √2 for even N
+            // W state turned into (|100...00⟩ + |110...00⟩ + |101...00⟩ + ... + |100...01⟩) / √N
+            if (M(qs[0]) == Zero) {
+                // Only GHZ can result in Zero
+                return 0;
+            }
+            if (N % 2 == 0) {
+                // For even N measurement could return One only for W
+                return 1;
+            }
+
+            // GHZ: |111...11⟩
+            // W:  (|100...00⟩ + |110...00⟩ + |101...00⟩ + ... + |100...01⟩) / √N
+            // Also, we know that N is odd, and N >= 3.
+            (Controlled(X))(qs[1 .. N-1], (qs[0]));
+            if (M(qs[0]) == Zero) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
         }
     }
 
