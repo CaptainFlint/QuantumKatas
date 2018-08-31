@@ -234,8 +234,24 @@ namespace Quantum.Kata.Measurements
         {
             // Hint: you need to use 2-qubit gates to solve this task
 
-            // ...
-            return -1;
+            CNOT(qs[0], qs[1]);
+            // |Φ⁺⟩ -> (|00⟩ + |10⟩) / sqrt(2)
+            // |Φ⁻⟩ -> (|00⟩ - |10⟩) / sqrt(2)
+            // |Ψ⁺⟩ -> (|01⟩ + |11⟩) / sqrt(2)
+            // |Ψ⁻⟩ -> (|01⟩ - |11⟩) / sqrt(2)
+            H(qs[0]);
+            // |Φ⁺⟩ -> |00⟩
+            // |Φ⁻⟩ -> |10⟩
+            // |Ψ⁺⟩ -> |01⟩
+            // |Ψ⁻⟩ -> |11⟩
+            mutable res = 0;
+            if (M(qs[0]) == One) {
+                set res = res + 1;
+            }
+            if (M(qs[1]) == One) {
+                set res = res + 2;
+            }
+            return res;
         }
     }
 
@@ -254,8 +270,20 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return -1;
+            H(qs[0]);
+            H(qs[1]);
+            // |S0⟩ -> |00⟩
+            // |S1⟩ -> |01⟩
+            // |S2⟩ -> |10⟩
+            // |S3⟩ -> |11⟩
+            mutable res = 0;
+            if (M(qs[0]) == One) {
+                set res = res + 2;
+            }
+            if (M(qs[1]) == One) {
+                set res = res + 1;
+            }
+            return res;
         }
     }
 
@@ -274,8 +302,26 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return -1;
+            H(qs[0]);
+            // |S0⟩ -> ( |10⟩ - |01⟩) / sqrt(2) -> (|10⟩ - |01⟩) / sqrt(2) = |Ψ⁻⟩
+            // |S1⟩ -> (-|00⟩ + |11⟩) / sqrt(2) -> (|00⟩ - |11⟩) / sqrt(2) = |Φ⁻⟩
+            // |S2⟩ -> (-|10⟩ - |01⟩) / sqrt(2) -> (|10⟩ + |01⟩) / sqrt(2) = |Ψ⁺⟩
+            // |S3⟩ -> (-|00⟩ - |11⟩) / sqrt(2) -> (|00⟩ + |11⟩) / sqrt(2) = |Φ⁺⟩
+            // Refer to the task 1.9 (BellState)
+            CNOT(qs[0], qs[1]);
+            H(qs[0]);
+            // |S0⟩ -> |11⟩
+            // |S1⟩ -> |10⟩
+            // |S2⟩ -> |01⟩
+            // |S3⟩ -> |00⟩
+            mutable res = 0;
+            if (M(qs[0]) == Zero) {
+                set res = res + 2;
+            }
+            if (M(qs[1]) == Zero) {
+                set res = res + 1;
+            }
+            return res;
         }
     }
 
