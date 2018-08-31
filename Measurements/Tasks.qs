@@ -370,8 +370,30 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return -2;
+            // 50% chance of having |0⟩ or |+⟩.
+            // If we with 50% chance swap them, in each case we'll have 25% probability for |0⟩ and |+⟩.
+            // Now measuring will return 12,5% for |1⟩ and 37,5% for |0⟩,
+            // the |1⟩ being the guaranteed identity, and |0⟩ being inconclusive.
+            // This is good enough for the task requirements.
+            if (RandomInt(2) == 0) {
+                // |1⟩ can only be measured for |+⟩, |0⟩ is inconclusive
+                if (M(q) == One) {
+                    return 1;
+                }
+                else {
+                    return -1;
+                }
+            }
+            else {
+                H(q);
+                // Swapped the states, now |1⟩ can only be measured for the former |0⟩
+                if (M(q) == One) {
+                    return 0;
+                }
+                else {
+                    return -1;
+                }
+            }
         }
     }
 }
