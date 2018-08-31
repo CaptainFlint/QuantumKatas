@@ -346,8 +346,9 @@ namespace Quantum.Kata.Measurements
     {
         body
         {
-            // ...
-            return true; 
+            // Maximum possible distance, gives ~85% probability
+            Ry(PI() / 4.0, q);
+            return M(q) == Zero;
         }
     }
 
