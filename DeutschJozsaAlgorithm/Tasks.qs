@@ -62,7 +62,7 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // Since f(x) = 1 for all values of x, |y ⊕ f(x)⟩ = |y ⊕ 1⟩ = |NOT y⟩.
             // This means that the operation needs to flip qubit y (i.e. transform |0⟩ to |1⟩ and vice versa).
 
-            // ...
+            X(y);
         }
     }
 
@@ -80,7 +80,7 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
             AssertBoolEqual(0 <= k && k < Length(x), true, "k should be between 0 and N-1, inclusive");
 
-            // ...
+            CNOT(x[k], y);
         }
     }
 
@@ -95,7 +95,9 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
         {
             // Hint: f(x) can be represented as x_0 ⊕ x_1 ⊕ ... ⊕ x_(N-1)
 
-            // ...
+            for (i in 0 .. Length(x) - 1) {
+                CNOT(x[i], y);
+            }
         }
     }
 
@@ -116,7 +118,11 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
             AssertIntEqual(Length(x), Length(r), "Arrays should have the same length");
 
-            // ...
+            for (i in 0 .. Length(x) - 1) {
+                if (r[i] != 0) {
+                    CNOT(x[i], y);
+                }
+            }
         }
     }
 
@@ -135,7 +141,16 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
             AssertIntEqual(Length(x), Length(r), "Arrays should have the same length");
 
-            // ...
+            for (i in 0 .. Length(x) - 1) {
+                if (r[i] != 0) {
+                    CNOT(x[i], y);
+                }
+                else {
+                    X(x[i]);
+                    CNOT(x[i], y);
+                    X(x[i]);
+                }
+            }
         }
     }
 
