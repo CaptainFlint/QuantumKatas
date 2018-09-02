@@ -174,12 +174,24 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
 
             // Hint: the first part of the function is the same as in task 1.4
 
-            // ...
+            for (i in 0 .. Length(x) - 1) {
+                CNOT(x[i], y);
+            }
 
             // Hint: you can use Controlled functor to perform multicontrolled gates
             // (gates with multiple control qubits).
 
-            // ...
+            for (i in 0 .. P - 1) {
+                if (prefix[i] == 0) {
+                    X(x[i]);
+                }
+            }
+            (Controlled(X))(x[0 .. P - 1], (y));
+            for (i in 0 .. P - 1) {
+                if (prefix[i] == 0) {
+                    X(x[i]);
+                }
+            }
         }
     }
 
