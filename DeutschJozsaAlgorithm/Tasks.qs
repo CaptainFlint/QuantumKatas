@@ -210,7 +210,20 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             
             // Hint: represent f(x) in terms of AND and ⊕ operations
 
-            // ...
+            // x = |111⟩
+            (Controlled(X))(x, (y));
+            // x = |011⟩
+            X(x[0]);
+            (Controlled(X))(x, (y));
+            X(x[0]);
+            // x = |101⟩
+            X(x[1]);
+            (Controlled(X))(x, (y));
+            X(x[1]);
+            // x = |110⟩
+            X(x[2]);
+            (Controlled(X))(x, (y));
+            X(x[2]);
         }
     }
 
