@@ -244,7 +244,11 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
     {
         body
         {
-            // ...
+            for (i in 0 .. Length(query) - 1) {
+                H(query[i]);
+            }
+            X(answer);
+            H(answer);
         }
         adjoint auto;
     }
