@@ -275,7 +275,24 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // the array has to be mutable to allow updating its elements.
             mutable r = new Int[N];
 
-            // ...
+            using (xy = Qubit[N + 1]) {
+                // Use the preparation from the task 2.1
+                BV_StatePrep(xy[0 .. N - 1], xy[N]);
+                Uf(xy[0 .. N - 1], xy[N]);
+                // Now we have a state similar to what we needed to distinguish in Measurements, Task 1.10
+                for (i in 0 .. N) {
+                    H(xy[i]);
+                }
+                for (i in 0 .. N - 1) {
+                    if (M(xy[i]) == One) {
+                        set r[i] = 1;
+                    }
+                    else {
+                        set r[i] = 0;
+                    }
+                }
+                ResetAll(xy);
+            }
 
             return r;
         }
