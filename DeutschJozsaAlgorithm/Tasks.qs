@@ -320,7 +320,18 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
 
             // BV_Test appears in the list of unit tests for the solution; run it to verify your code.
 
-            // ...
+            // Trying lengths of 1 to 16
+            for (N in 1 .. 16) {
+                // 100 iterations with random arrays
+                for (iter in 0 .. 100) {
+                    mutable r = new Int[N];
+                    for (i in 0 .. N - 1) {
+                        set r[i] = RandomInt(2);
+                    }
+                    let oracle = Oracle_ProductFunction(_, _, r);
+                    AssertIntArrayEqual(r, BV_Algorithm(N, oracle), "Inconsistency between scalar product oracle and BV algorithm result");
+                }
+            }
         }
     }
 
