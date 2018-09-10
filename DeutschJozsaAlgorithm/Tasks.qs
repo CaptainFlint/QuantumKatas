@@ -420,7 +420,20 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
 
             // DJ_Test appears in the list of unit tests for the solution; run it to verify your code.
 
-            // ...
+            // 1.1 Oracle_Zero
+            AssertBoolEqual(DJ_Algorithm(1, Oracle_Zero), true, "Oracle_Zero was erroneously determined as balanced");
+            // 1.2 Oracle_One
+            AssertBoolEqual(DJ_Algorithm(1, Oracle_One), true, "Oracle_One was erroneously determined as balanced");
+            // 1.3 Oracle_Kth_Qubit
+            // Trying lengths of 2 to 16
+            for (N in 2 .. 16) {
+                for (k in 0 .. N - 1) {
+                    let oracle = Oracle_Kth_Qubit(_, _, k);
+                    AssertBoolEqual(DJ_Algorithm(N, oracle), false, "Oracle_Kth_Qubit was erroneously determined as constant");
+                }
+            }
+            // 1.4 Oracle_OddNumberOfOnes
+            AssertBoolEqual(DJ_Algorithm(1, Oracle_OddNumberOfOnes), false, "Oracle_OddNumberOfOnes was erroneously determined as constant");
         }
     }
 
