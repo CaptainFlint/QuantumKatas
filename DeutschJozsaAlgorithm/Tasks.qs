@@ -320,16 +320,32 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
 
             // BV_Test appears in the list of unit tests for the solution; run it to verify your code.
 
-            // Trying lengths of 1 to 16
-            for (N in 1 .. 16) {
-                // 100 iterations with random arrays
-                for (iter in 0 .. 100) {
+            let MaxN_Full = 8;          // For values up to this we enumerate all possible combinations
+            let MaxN_Random = 16;       // Then, up to this one just do some randoms
+            let RandomIterations = 100; // Amount of random tests
+            for (N in 1 .. MaxN_Full) {
+                // Iterations with full set of combinations
+                for (iter in 0 .. 2 ^ N - 1) {
+                    mutable r = new Int[N];
+                    // Fill in the `r' with binary representation of the value `iter'
+                    mutable v = iter;
+                    for (i in 0 .. N - 1) {
+                        set r[i] = v % 2;
+                        set v = v / 2;
+                    }
+                    AssertIntArrayEqual(r, BV_Algorithm(N, Oracle_ProductFunction(_, _, r)),
+                        "Inconsistency between scalar product oracle and BV algorithm result");
+                }
+            }
+            for (N in MaxN_Full + 1 .. MaxN_Random) {
+                // Iterations with random arrays
+                for (iter in 1 .. RandomIterations) {
                     mutable r = new Int[N];
                     for (i in 0 .. N - 1) {
                         set r[i] = RandomInt(2);
                     }
-                    let oracle = Oracle_ProductFunction(_, _, r);
-                    AssertIntArrayEqual(r, BV_Algorithm(N, oracle), "Inconsistency between scalar product oracle and BV algorithm result");
+                    AssertIntArrayEqual(r, BV_Algorithm(N, Oracle_ProductFunction(_, _, r)),
+                        "Inconsistency between scalar product oracle and BV algorithm result");
                 }
             }
         }
