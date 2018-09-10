@@ -384,7 +384,23 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // it can be expressed as running Bernstein-Vazirani algorithm
             // and then post-processing the return value classically
 
-            // ...
+            using (xy = Qubit[N + 1]) {
+                // Use the preparation from the task 2.1
+                BV_StatePrep(xy[0 .. N - 1], xy[N]);
+                Uf(xy[0 .. N - 1], xy[N]);
+                for (i in 0 .. N) {
+                    H(xy[i]);
+                }
+                // **I did not prove this, really, but there are very good indications that the following is correct.**
+                // Constant function turns this into |0...0⟩|1⟩ for 0, or -|0...0⟩|1⟩ for 1, which is really the same.
+                // Other functions will have at least one 1 in the x.
+                for (i in 0 .. N - 1) {
+                    if (M(xy[i]) == One) {
+                        set isConstantFunction = false;
+                    }
+                }
+                ResetAll(xy);
+            }
 
             return isConstantFunction;
         }
