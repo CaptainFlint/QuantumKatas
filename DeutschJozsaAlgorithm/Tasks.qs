@@ -561,8 +561,18 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // Declare a Bool array in which the result will be stored;
             // the array has to be mutable to allow updating its elements.
             mutable r = new Int[N];
+            for (i in 0 .. N - 1) {
+                set r[i] = 0;
+            }
 
-            // ...
+            using (xy = Qubit[N + 1]) {
+                MultiX(xy);
+                Uf(xy[0 .. N - 1], xy[N]);
+                if (M(xy[N]) == Zero) {
+                    set r[0] = 1;
+                }
+                ResetAll(xy);
+            }
 
             return r;
         }
