@@ -566,10 +566,16 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             }
 
             using (xy = Qubit[N + 1]) {
-                MultiX(xy);
                 Uf(xy[0 .. N - 1], xy[N]);
-                if (M(xy[N]) == Zero) {
-                    set r[0] = 1;
+                if (N % 2 == 0) {
+                    if (M(xy[N]) == One) {
+                        set r[0] = 1;
+                    }
+                }
+                else {
+                    if (M(xy[N]) == Zero) {
+                        set r[0] = 1;
+                    }
                 }
                 ResetAll(xy);
             }
