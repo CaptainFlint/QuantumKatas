@@ -298,6 +298,50 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
         }
     }
 
+    // Auxiliary function to run tests on operations with bit array as input
+    operation ArrayOperator_TestCaller (TestProc : ((Int[]) => ())) : ()
+    {
+        body
+        {
+            let MaxN_Full = 8;          // For values up to this we enumerate all possible combinations
+            let MaxN_Random = 16;       // Then, up to this one just do some randoms
+            let RandomIterations = 100; // Amount of random tests
+            for (N in 1 .. MaxN_Full) {
+                // Iterations with full set of combinations
+                for (iter in 0 .. 2 ^ N - 1) {
+                    mutable r = new Int[N];
+                    // Fill in the `r' with binary representation of the value `iter'
+                    mutable v = iter;
+                    for (i in 0 .. N - 1) {
+                        set r[i] = v % 2;
+                        set v = v / 2;
+                    }
+                    TestProc(r);
+                }
+            }
+            for (N in MaxN_Full + 1 .. MaxN_Random) {
+                // Iterations with random arrays
+                for (iter in 1 .. RandomIterations) {
+                    mutable r = new Int[N];
+                    for (i in 0 .. N - 1) {
+                        set r[i] = RandomInt(2);
+                    }
+                    TestProc(r);
+                }
+            }
+        }
+    }
+
+    // Basic check for BV_Test for an arbitrary array
+    operation BV_TestAssert (r : Int[]) : ()
+    {
+        body
+        {
+            AssertIntArrayEqual(r, BV_Algorithm(Length(r), Oracle_ProductFunction(_, _, r)),
+                        "Inconsistency between scalar product oracle and BV algorithm result");
+        }
+    }
+
     // Task 2.3. Testing Bernstein-Vazirani algorithm
     // Goal: use your implementation of Bernstein-Vazirani algorithm from task 2.2 to figure out 
     // what bit vector the scalar product function oracle from task 1.5 was using.
@@ -320,34 +364,7 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
 
             // BV_Test appears in the list of unit tests for the solution; run it to verify your code.
 
-            let MaxN_Full = 8;          // For values up to this we enumerate all possible combinations
-            let MaxN_Random = 16;       // Then, up to this one just do some randoms
-            let RandomIterations = 100; // Amount of random tests
-            for (N in 1 .. MaxN_Full) {
-                // Iterations with full set of combinations
-                for (iter in 0 .. 2 ^ N - 1) {
-                    mutable r = new Int[N];
-                    // Fill in the `r' with binary representation of the value `iter'
-                    mutable v = iter;
-                    for (i in 0 .. N - 1) {
-                        set r[i] = v % 2;
-                        set v = v / 2;
-                    }
-                    AssertIntArrayEqual(r, BV_Algorithm(N, Oracle_ProductFunction(_, _, r)),
-                        "Inconsistency between scalar product oracle and BV algorithm result");
-                }
-            }
-            for (N in MaxN_Full + 1 .. MaxN_Random) {
-                // Iterations with random arrays
-                for (iter in 1 .. RandomIterations) {
-                    mutable r = new Int[N];
-                    for (i in 0 .. N - 1) {
-                        set r[i] = RandomInt(2);
-                    }
-                    AssertIntArrayEqual(r, BV_Algorithm(N, Oracle_ProductFunction(_, _, r)),
-                        "Inconsistency between scalar product oracle and BV algorithm result");
-                }
-            }
+            ArrayOperator_TestCaller(BV_TestAssert);
         }
     }
 
@@ -406,6 +423,34 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
         }
     }
 
+    // Basic check for DJ_Test with Oracle_ProductFunction for an arbitrary array
+    operation DJ15_TestAssert (r : Int[]) : ()
+    {
+        body
+        {
+            let N = Length(r);
+            mutable expected = true;
+            for (i in 0 .. N - 1) {
+                if (r[i] != 0) {
+                    set expected = false;
+                }
+            }
+            AssertBoolEqual(DJ_Algorithm(N, Oracle_ProductFunction(_, _, r)), expected,
+                "Oracle_ProductFunction was detected erroneously");
+        }
+    }
+
+    // Basic check for DJ_Test with Oracle_ProductFunction for an arbitrary array
+    operation DJ16_TestAssert (r : Int[]) : ()
+    {
+        body
+        {
+            let N = Length(r);
+            AssertBoolEqual(DJ_Algorithm(N, Oracle_ProductWithNegationFunction(_, _, r)), false,
+                "Oracle_ProductWithNegationFunction was detected erroneously");
+        }
+    }
+
     // Task 3.2. Testing Deutsch-Jozsa algorithm
     // Goal: use your implementation of Deutsch-Jozsa algorithm from task 3.1 to test 
     // each of the oracles you've implemented in part I for being constant or balanced.
@@ -422,8 +467,10 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
 
             // 1.1 Oracle_Zero
             AssertBoolEqual(DJ_Algorithm(1, Oracle_Zero), true, "Oracle_Zero was erroneously determined as balanced");
+
             // 1.2 Oracle_One
             AssertBoolEqual(DJ_Algorithm(1, Oracle_One), true, "Oracle_One was erroneously determined as balanced");
+
             // 1.3 Oracle_Kth_Qubit
             // Trying lengths of 2 to 16
             for (N in 2 .. 16) {
@@ -432,8 +479,63 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
                     AssertBoolEqual(DJ_Algorithm(N, oracle), false, "Oracle_Kth_Qubit was erroneously determined as constant");
                 }
             }
+
             // 1.4 Oracle_OddNumberOfOnes
             AssertBoolEqual(DJ_Algorithm(1, Oracle_OddNumberOfOnes), false, "Oracle_OddNumberOfOnes was erroneously determined as constant");
+
+            // 1.5 Oracle_ProductFunction
+            ArrayOperator_TestCaller(DJ15_TestAssert);
+
+            // 1.6 Oracle_ProductWithNegationFunction
+            ArrayOperator_TestCaller(DJ16_TestAssert);
+
+            // 1.7 Oracle_HammingWithPrefix
+            // Separately check N == 1, P == 1, function is constant
+            AssertBoolEqual(DJ_Algorithm(1, Oracle_HammingWithPrefix(_, _, [0])), true,
+                $"Oracle_HammingWithPrefix was erroneously determined as balanced for N == 1");
+            AssertBoolEqual(DJ_Algorithm(1, Oracle_HammingWithPrefix(_, _, [1])), true,
+                $"Oracle_HammingWithPrefix was erroneously determined as balanced for N == 1");
+            // For other combinations, if P < N then the function is balanced;
+            // if P == N then it's neither constant, nor balanced, so exluding this case.
+            let MaxN = 16;              // Maximum qubit array length to test
+            let MaxP_Full = 7;          // For values up to this we enumerate all possible prefix combinations
+            let RandomIterations = 100; // Amount of random tests for the longer prefixes
+            for (N in 2 .. MaxN) {
+                // Maximum possible value of P
+                mutable MaxP = N - 1;
+                mutable P_Full = MaxP_Full;
+                if (P_Full > MaxP) {
+                    set P_Full = MaxP;
+                }
+                // Iterations with full set of combinations
+                for (P in 1 .. P_Full) {
+                    for (iter in 0 .. 2 ^ P - 1) {
+                        mutable r = new Int[P];
+                        // Fill in the `r' with binary representation of the value `iter'
+                        mutable v = iter;
+                        for (i in 0 .. P - 1) {
+                            set r[i] = v % 2;
+                            set v = v / 2;
+                        }
+                        AssertBoolEqual(DJ_Algorithm(N, Oracle_HammingWithPrefix(_, _, r)), N == 1,
+                            $"Oracle_HammingWithPrefix was erroneously determined as constant, params: N={N}, P={P}, r={r}");
+                    }
+                }
+                // Iterations with random arrays
+                for (P in P_Full + 1 .. MaxP) {
+                    for (iter in 1 .. RandomIterations) {
+                        mutable r = new Int[P];
+                        for (i in 0 .. P - 1) {
+                            set r[i] = RandomInt(2);
+                        }
+                        AssertBoolEqual(DJ_Algorithm(N, Oracle_HammingWithPrefix(_, _, r)), false,
+                            $"Oracle_HammingWithPrefix was erroneously determined as constant, params: N={N}, P={P}, r={r}");
+                    }
+                }
+            }
+
+            // 1.8 Oracle_MajorityFunction
+            AssertBoolEqual(DJ_Algorithm(3, Oracle_MajorityFunction), false, "Oracle_MajorityFunction was erroneously determined as constant");
         }
     }
 
