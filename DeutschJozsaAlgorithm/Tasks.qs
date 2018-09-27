@@ -561,6 +561,12 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm
             // Declare a Bool array in which the result will be stored;
             // the array has to be mutable to allow updating its elements.
             mutable r = new Int[N];
+
+            // f() can be represented as follows:
+            // f(𝑥₀, …, 𝑥ₙ₋₁) = Σᵢ 𝑟ᵢ 𝑥ᵢ + Σᵢ (1 - 𝑟ᵢ - 𝑥ᵢ + 𝑟ᵢ𝑥ᵢ) = N + Σᵢ 𝑟ᵢ + Σᵢ 𝑥ᵢ
+            // Therefore, it depends only on the total sum of 𝑟ᵢ. Since the sum can be either 0 or 1,
+            // the bit array r can be set to (0, 0, …, 0) or (1, 0, …, 0), respectively, depending
+            // on wheher N is even or odd, and whether f(0, …, 0) produces 0 or 1.
             for (i in 0 .. N - 1) {
                 set r[i] = 0;
             }
